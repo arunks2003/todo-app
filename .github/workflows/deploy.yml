@@ -1,117 +1,106 @@
 name: CI/CD — Build & Deploy
 
 on:
-push:
-branches: [main, master]
-pull_request:
-branches: [main, master]
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
 
 jobs:
+  # ───────────────────────────────────────────────────────────────
+  # Job 1: Build + Lint + Typecheck
+  # ───────────────────────────────────────────────────────────────
+  build:
+    name: Build & Lint
+    runs-on: ubuntu-latest
 
-# ───────────────────────────────────────────────────────────────
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-# Job 1: Build + Lint + Typecheck
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
 
-# ───────────────────────────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
 
-build:
-name: Build & Lint
-runs-on: ubuntu-latest
+      - name: Run ESLint
+        run: npm run lint
 
-```
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+      - name: Type check
+        run: npx tsc --noEmit
 
-  - name: Set up Node.js 20
-    uses: actions/setup-node@v4
-    with:
-      node-version: "20"
-      cache: "npm"
+      - name: Build Next.js app
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
 
-  - name: Install dependencies
-    run: npm ci
+  # ───────────────────────────────────────────────────────────────
+  # Job 2: Deploy to Vercel
+  # ───────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Vercel
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
 
-  - name: Run ESLint
-    run: npm run lint
-
-  - name: Type check
-    run: npx tsc --noEmit
-
-  - name: Build Next.js app
     env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-    run: npm run build
-```
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-# ───────────────────────────────────────────────────────────────
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-# Job 2: Deploy to Vercel
+      - name: Debug secrets presence
+        run: |
+          echo "Checking secrets..."
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "❌ VERCEL_TOKEN is EMPTY"
+            exit 1
+          else
+            echo "✅ VERCEL_TOKEN exists"
+          fi
 
-# ───────────────────────────────────────────────────────────────
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            echo "❌ VERCEL_ORG_ID is EMPTY"
+            exit 1
+          else
+            echo "✅ VERCEL_ORG_ID exists"
+          fi
 
-deploy:
-name: Deploy to Vercel
-needs: build
-runs-on: ubuntu-latest
-if: github.event_name == 'push'
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "❌ VERCEL_PROJECT_ID is EMPTY"
+            exit 1
+          else
+            echo "✅ VERCEL_PROJECT_ID exists"
+          fi
 
-```
-env:
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
 
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
 
-  - name: Debug secrets presence
-    run: |
-      echo "Checking secrets..."
-      if [ -z "$VERCEL_TOKEN" ]; then
-        echo "❌ VERCEL_TOKEN is EMPTY"
-        exit 1
-      else
-        echo "✅ VERCEL_TOKEN exists"
-      fi
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
 
-      if [ -z "$VERCEL_ORG_ID" ]; then
-        echo "❌ VERCEL_ORG_ID is EMPTY"
-        exit 1
-      else
-        echo "✅ VERCEL_ORG_ID exists"
-      fi
+      - name: Debug token length
+        run: echo "Token length: ${#VERCEL_TOKEN}"
 
-      if [ -z "$VERCEL_PROJECT_ID" ]; then
-        echo "❌ VERCEL_PROJECT_ID is EMPTY"
-        exit 1
-      else
-        echo "✅ VERCEL_PROJECT_ID exists"
-      fi
+      - name: Pull Vercel environment info
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
-  - name: Set up Node.js 20
-    uses: actions/setup-node@v4
-    with:
-      node-version: "20"
-      cache: "npm"
+      - name: Build project artifacts
+        run: vercel build --prod --token="$VERCEL_TOKEN"
 
-  - name: Install dependencies
-    run: npm ci
-
-  - name: Install Vercel CLI
-    run: npm install --global vercel@latest
-
-  - name: Debug token length
-    run: echo "Token length: ${#VERCEL_TOKEN}"
-
-  - name: Pull Vercel environment info
-    run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-  - name: Build project artifacts
-    run: vercel build --prod --token="$VERCEL_TOKEN"
-
-  - name: Deploy to Vercel production
-    run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-```
+      - name: Deploy to Vercel production
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
