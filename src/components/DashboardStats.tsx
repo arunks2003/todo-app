@@ -44,80 +44,41 @@ export default function DashboardStats({ tasks }: Props) {
       icon: <CheckCircle2 size={18} />,
       color: "var(--success)",
       bg: "var(--success-bg)",
+      showProgress: true,
     },
   ];
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-        gap: "16px",
-      }}
-    >
+    <div className="stats-grid">
       {stats.map((stat, i) => (
         <div
           key={stat.id}
           id={stat.id}
-          className="glass animate-fade-in"
-          style={{
-            padding: "20px",
-            borderRadius: "16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-            animationDelay: `${i * 0.07}s`,
-          }}
+          className="stat-card glass animate-fade-in"
+          style={{ animationDelay: `${i * 0.07}s` }}
         >
-          <div
-            style={{
-              width: "38px",
-              height: "38px",
-              borderRadius: "10px",
-              background: stat.bg,
-              color: stat.color,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {stat.icon}
-          </div>
-          <div>
+          <div className="stat-card-top">
             <div
-              style={{ fontSize: "26px", fontWeight: 700, lineHeight: 1.1 }}
+              className="stat-icon"
+              style={{ background: stat.bg, color: stat.color }}
             >
-              {stat.value}
+              {stat.icon}
             </div>
-            <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "2px" }}>
-              {stat.label}
-            </div>
+            <div className="stat-value">{stat.value}</div>
           </div>
+          <div className="stat-label">{stat.label}</div>
 
-          {/* Progress bar for completion rate on last card */}
-          {stat.label === "Completed" && total > 0 && (
-            <div>
-              <div
-                style={{
-                  height: "4px",
-                  borderRadius: "2px",
-                  background: "var(--bg-overlay)",
-                  overflow: "hidden",
-                }}
-              >
+          {stat.showProgress && total > 0 && (
+            <div className="stat-progress">
+              <div className="stat-progress-track">
                 <div
-                  style={{
-                    height: "100%",
-                    width: `${completionRate}%`,
-                    background: "var(--success)",
-                    borderRadius: "2px",
-                    transition: "width 0.6s ease",
-                  }}
+                  className="stat-progress-fill"
+                  style={{ width: `${completionRate}%` }}
                 />
               </div>
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>
-                {completionRate}% completion rate
-              </div>
+              <span className="stat-progress-label">
+                {completionRate}% done
+              </span>
             </div>
           )}
         </div>

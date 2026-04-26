@@ -21,81 +21,30 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
-        position: "relative",
-      }}
-    >
-      {/* Subtle background */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background:
-            "radial-gradient(ellipse at 60% 20%, rgba(92,124,250,0.08) 0%, transparent 60%)",
-          pointerEvents: "none",
-        }}
-      />
+    <div className="auth-page">
+      <div className="auth-bg" aria-hidden="true" />
 
-      <div
-        className="glass animate-fade-in"
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          borderRadius: "20px",
-          padding: "2.5rem",
-          zIndex: 1,
-        }}
-      >
+      <div className="auth-card glass animate-fade-in">
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "2rem" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, var(--brand-500), var(--brand-700))",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+        <Link href="/" className="auth-logo">
+          <div className="logo-icon">
             <Zap size={18} color="#fff" fill="#fff" />
           </div>
-          <span style={{ fontWeight: 700, fontSize: "18px" }}>TaskFlow</span>
-        </div>
+          <span className="logo-text">TaskFlow</span>
+        </Link>
 
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "6px" }}>
-          Welcome back
-        </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "2rem" }}>
-          Sign in to your workspace
-        </p>
+        <h1 className="auth-heading">Welcome back</h1>
+        <p className="auth-sub">Sign in to your workspace</p>
 
         {error && (
-          <div
-            style={{
-              padding: "12px 16px",
-              borderRadius: "10px",
-              background: "var(--danger-bg)",
-              border: "1px solid rgba(240,68,56,0.3)",
-              color: "var(--danger)",
-              fontSize: "14px",
-              marginBottom: "1.5rem",
-            }}
-          >
+          <div className="alert-error" role="alert">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-secondary)" }}>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="login-email" className="form-label">
               Email address
             </label>
             <input
@@ -105,15 +54,15 @@ export default function LoginPage() {
               required
               autoComplete="email"
               placeholder="you@example.com"
-              style={inputStyle}
+              className="form-input"
             />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-secondary)" }}>
+          <div className="form-group">
+            <label htmlFor="login-password" className="form-label">
               Password
             </label>
-            <div style={{ position: "relative" }}>
+            <div className="input-icon-wrap">
               <input
                 id="login-password"
                 name="password"
@@ -121,23 +70,13 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 placeholder="••••••••"
-                style={{ ...inputStyle, paddingRight: "44px" }}
+                className="form-input"
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "12px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--text-muted)",
-                  display: "flex",
-                  alignItems: "center",
-                }}
+                onClick={() => setShowPassword((s) => !s)}
+                className="input-icon-btn"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -148,11 +87,11 @@ export default function LoginPage() {
             id="login-submit"
             type="submit"
             disabled={isPending}
-            style={primaryButtonStyle}
+            className="btn-primary btn-full"
           >
             {isPending ? (
               <>
-                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                <Loader2 size={16} className="spin" />
                 Signing in...
               </>
             ) : (
@@ -161,12 +100,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "14px", color: "var(--text-secondary)" }}>
+        <p className="auth-footer">
           Don&apos;t have an account?{" "}
-          <Link
-            href="/signup"
-            style={{ color: "var(--brand-400)", fontWeight: 600, textDecoration: "none" }}
-          >
+          <Link href="/signup" className="auth-link">
             Sign up free
           </Link>
         </p>
@@ -174,32 +110,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "11px 14px",
-  borderRadius: "10px",
-  background: "var(--bg-overlay)",
-  border: "1px solid var(--border-default)",
-  color: "var(--text-primary)",
-  fontSize: "14px",
-  outline: "none",
-  transition: "border-color 0.2s",
-};
-
-const primaryButtonStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "8px",
-  padding: "12px",
-  borderRadius: "10px",
-  background: "linear-gradient(135deg, var(--brand-500), var(--brand-700))",
-  color: "#fff",
-  fontWeight: 600,
-  fontSize: "15px",
-  border: "none",
-  cursor: "pointer",
-  marginTop: "4px",
-  transition: "opacity 0.2s",
-};

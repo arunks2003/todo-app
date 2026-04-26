@@ -37,7 +37,7 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
 
   const isEditing = !!task;
 
-  // Close on Escape
+  // Close on Escape key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -50,9 +50,6 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
     const { name, value } = e.target;
-    // Only fields that are genuinely nullable in the DB schema should become
-    // null when cleared. Setting null on a required string field (e.g. title)
-    // causes React to see value={null} → "controlled input → uncontrolled" warning.
     const nullableFields = ["description", "due_date"];
     const coerced = nullableFields.includes(name) && value === "" ? null : value;
     setForm((prev) => ({ ...prev, [name]: coerced }));
@@ -71,17 +68,8 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
       try {
         if (isEditing && task) {
           await updateTask(task.id, form);
-          onSave(
-            {
-              ...task,
-              ...form,
-              updated_at: new Date().toISOString(),
-            },
-            false
-          );
+          onSave({ ...task, ...form, updated_at: new Date().toISOString() }, false);
         } else {
-          // createTask() now returns the real DB row with a proper UUID —
-          // no more temp IDs that would crash Supabase UUID validation.
           const newTask = await createTask(form);
           onSave(newTask, true);
         }
@@ -94,79 +82,47 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
   return (
     <div
       ref={overlayRef}
+      className="modal-overlay"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(4px)",
-        zIndex: 100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1rem",
-      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={isEditing ? "Edit task" : "Create task"}
     >
-      <div
-        className="glass animate-fade-in"
-        style={{
-          width: "100%",
-          maxWidth: "520px",
-          borderRadius: "20px",
-          padding: "2rem",
-        }}
-      >
+      <div className="modal-card">
+        {/* Drag handle (mobile bottom-sheet indicator) */}
+        <div className="modal-handle" aria-hidden="true" />
+
         {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <h2 style={{ fontWeight: 700, fontSize: "1.1rem" }}>
+        <div className="modal-header">
+          <h2 className="modal-title">
             {isEditing ? "Edit task" : "Create a new task"}
           </h2>
           <button
             id="modal-close"
             onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--text-muted)",
-              display: "flex",
-              padding: "4px",
-              borderRadius: "6px",
-            }}
+            className="modal-close-btn"
+            aria-label="Close"
           >
             <X size={18} />
           </button>
         </div>
 
+        {/* Error */}
         {error && (
-          <div
-            style={{
-              padding: "10px 14px",
-              borderRadius: "10px",
-              background: "var(--danger-bg)",
-              border: "1px solid rgba(240,68,56,0.3)",
-              color: "var(--danger)",
-              fontSize: "13px",
-              marginBottom: "1rem",
-            }}
-          >
+          <div className="alert-error" role="alert">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="modal-form">
           {/* Title */}
-          <div>
-            <label style={labelStyle}>Title *</label>
+          <div className="form-group">
+            <label htmlFor="modal-title" className="modal-label">
+              Title *
+            </label>
             <input
               id="modal-title"
               name="title"
@@ -175,13 +131,16 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
               onChange={handleChange}
               placeholder="What needs to be done?"
               required
-              style={inputStyle}
+              autoFocus
+              className="form-input"
             />
           </div>
 
           {/* Description */}
-          <div>
-            <label style={labelStyle}>Description</label>
+          <div className="form-group">
+            <label htmlFor="modal-description" className="modal-label">
+              Description
+            </label>
             <textarea
               id="modal-description"
               name="description"
@@ -189,34 +148,38 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
               onChange={handleChange}
               placeholder="Add details (optional)"
               rows={3}
-              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.5 }}
+              className="form-input"
             />
           </div>
 
-          {/* Row: Status + Priority */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div>
-              <label style={labelStyle}>Status</label>
+          {/* Status + Priority side by side */}
+          <div className="modal-row">
+            <div className="form-group">
+              <label htmlFor="modal-status" className="modal-label">
+                Status
+              </label>
               <select
                 id="modal-status"
                 name="status"
                 value={form.status}
                 onChange={handleChange}
-                style={{ ...inputStyle, cursor: "pointer" }}
+                className="form-input"
               >
                 <option value="todo">To Do</option>
                 <option value="in_progress">In Progress</option>
                 <option value="done">Done</option>
               </select>
             </div>
-            <div>
-              <label style={labelStyle}>Priority</label>
+            <div className="form-group">
+              <label htmlFor="modal-priority" className="modal-label">
+                Priority
+              </label>
               <select
                 id="modal-priority"
                 name="priority"
                 value={form.priority}
                 onChange={handleChange}
-                style={{ ...inputStyle, cursor: "pointer" }}
+                className="form-input"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -226,60 +189,35 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
           </div>
 
           {/* Due date */}
-          <div>
-            <label style={labelStyle}>Due date</label>
+          <div className="form-group">
+            <label htmlFor="modal-due-date" className="modal-label">
+              Due date
+            </label>
             <input
               id="modal-due-date"
               name="due_date"
               type="date"
               value={form.due_date ?? ""}
               onChange={handleChange}
-              style={{ ...inputStyle, colorScheme: "dark" }}
+              className="form-input"
+              style={{ colorScheme: "dark" }}
             />
           </div>
 
           {/* Actions */}
-          <div style={{ display: "flex", gap: "10px", marginTop: "6px" }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                flex: 1,
-                padding: "11px",
-                borderRadius: "10px",
-                background: "var(--bg-overlay)",
-                border: "1px solid var(--border-default)",
-                color: "var(--text-secondary)",
-                fontWeight: 600,
-                fontSize: "14px",
-                cursor: "pointer",
-              }}
-            >
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="btn-cancel">
               Cancel
             </button>
             <button
               id="modal-save"
               type="submit"
               disabled={isPending}
-              style={{
-                flex: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                padding: "11px",
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, var(--brand-500), var(--brand-700))",
-                border: "none",
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: "14px",
-                cursor: "pointer",
-              }}
+              className="btn-save"
             >
               {isPending ? (
                 <>
-                  <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />
+                  <Loader2 size={15} className="spin" />
                   Saving...
                 </>
               ) : isEditing ? (
@@ -294,22 +232,3 @@ export default function TaskModal({ task, onClose, onSave }: Props) {
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontSize: "12px",
-  fontWeight: 500,
-  color: "var(--text-secondary)",
-  marginBottom: "6px",
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: "10px",
-  background: "var(--bg-overlay)",
-  border: "1px solid var(--border-default)",
-  color: "var(--text-primary)",
-  fontSize: "14px",
-  outline: "none",
-};

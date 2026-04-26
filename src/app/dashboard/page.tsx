@@ -31,11 +31,11 @@ export default async function DashboardPage() {
   return (
     <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
       {/* Header */}
-      <div>
-        <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: "4px" }}>
+      <div className="dashboard-header">
+        <h1 className="dashboard-heading">
           Good morning, {name} 👋
         </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
+        <p className="dashboard-sub">
           {tasks.length === 0
             ? "You have no tasks yet. Create your first one below."
             : `You have ${tasks.filter((t) => t.status !== "done").length} active task${tasks.filter((t) => t.status !== "done").length !== 1 ? "s" : ""}.`}

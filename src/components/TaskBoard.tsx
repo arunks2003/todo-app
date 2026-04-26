@@ -3,20 +3,18 @@
 import { useState, useTransition } from "react";
 import { Plus, Search, Filter } from "lucide-react";
 import type { Task, TaskStatus, TaskPriority } from "@/types";
-// import TaskCard from "@/components/TaskCard";
-// import TaskModal from "@/components/TaskModal";
-import { deleteTask, updateTask } from "@/actions/tasks";
 import TaskCard from "./TaskCard";
 import TaskModal from "./TaskModal";
+import { deleteTask, updateTask } from "@/actions/tasks";
 
 interface Props {
   initialTasks: Task[];
 }
 
-const STATUS_COLUMNS: { key: TaskStatus; label: string; color: string }[] = [
-  { key: "todo", label: "To Do", color: "var(--warning)" },
-  { key: "in_progress", label: "In Progress", color: "var(--info)" },
-  { key: "done", label: "Done", color: "var(--success)" },
+const STATUS_COLUMNS: { key: TaskStatus; label: string; colorClass: string }[] = [
+  { key: "todo", label: "To Do", colorClass: "col-dot--todo" },
+  { key: "in_progress", label: "In Progress", colorClass: "col-dot--progress" },
+  { key: "done", label: "Done", colorClass: "col-dot--done" },
 ];
 
 export default function TaskBoard({ initialTasks }: Props) {
@@ -27,7 +25,6 @@ export default function TaskBoard({ initialTasks }: Props) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [, startTransition] = useTransition();
 
-  // Optimistically update tasks when created/updated
   function handleTaskSaved(task: Task, isNew: boolean) {
     setTasks((prev) =>
       isNew ? [task, ...prev] : prev.map((t) => (t.id === task.id ? task : t))
@@ -42,9 +39,7 @@ export default function TaskBoard({ initialTasks }: Props) {
   }
 
   function handleDelete(id: string) {
-    // Always remove from local state immediately (optimistic)
     setTasks((prev) => prev.filter((t) => t.id !== id));
-    // Skip the server call if this is a temp ID — it was never persisted
     if (id.startsWith("temp-")) return;
     startTransition(async () => {
       try {
@@ -56,11 +51,9 @@ export default function TaskBoard({ initialTasks }: Props) {
   }
 
   function handleStatusChange(id: string, status: TaskStatus) {
-    // Always update local state immediately (optimistic)
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status } : t))
     );
-    // Skip the server call if this is a temp ID — it was never persisted
     if (id.startsWith("temp-")) return;
     startTransition(async () => {
       try {
@@ -82,187 +75,80 @@ export default function TaskBoard({ initialTasks }: Props) {
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div className="board-wrap">
       {/* Toolbar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
+      <div className="board-toolbar">
         {/* Search */}
-        <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
-          <Search
-            size={15}
-            style={{
-              position: "absolute",
-              left: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--text-muted)",
-            }}
-          />
+        <div className="search-wrap">
+          <Search size={15} className="search-icon" aria-hidden="true" />
           <input
             id="task-search"
             type="text"
             placeholder="Search tasks..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 14px 10px 36px",
-              borderRadius: "10px",
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
-              fontSize: "14px",
-              outline: "none",
-            }}
+            className="search-input"
           />
         </div>
 
-        {/* Priority filter */}
-        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-          <Filter
-            size={14}
-            style={{
-              position: "absolute",
-              left: "12px",
-              color: "var(--text-muted)",
+        <div className="toolbar-right">
+          {/* Priority filter */}
+          <div className="filter-wrap">
+            <Filter size={13} className="filter-icon" aria-hidden="true" />
+            <select
+              id="priority-filter"
+              value={filterPriority}
+              onChange={(e) =>
+                setFilterPriority(e.target.value as TaskPriority | "all")
+              }
+              className="filter-select"
+            >
+              <option value="all">All</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          {/* New task button */}
+          <button
+            id="new-task-btn"
+            onClick={() => {
+              setEditingTask(null);
+              setShowModal(true);
             }}
-          />
-          <select
-            id="priority-filter"
-            value={filterPriority}
-            onChange={(e) => setFilterPriority(e.target.value as TaskPriority | "all")}
-            style={{
-              padding: "10px 32px 10px 32px",
-              borderRadius: "10px",
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
-              fontSize: "14px",
-              outline: "none",
-              cursor: "pointer",
-              appearance: "none",
-            }}
+            className="btn-primary btn-sm"
           >
-            <option value="all">All priorities</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
+            <Plus size={16} />
+            <span>New Task</span>
+          </button>
         </div>
-
-        {/* New task button */}
-        <button
-          id="new-task-btn"
-          onClick={() => {
-            setEditingTask(null);
-            setShowModal(true);
-          }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "10px 18px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg, var(--brand-500), var(--brand-700))",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: "14px",
-            border: "none",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            boxShadow: "0 4px 14px rgba(92,124,250,0.3)",
-          }}
-        >
-          <Plus size={16} />
-          New Task
-        </button>
       </div>
 
       {/* Kanban columns */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "20px",
-          alignItems: "start",
-        }}
-      >
+      <div className="kanban-grid">
         {STATUS_COLUMNS.map((col) => {
           const colTasks = filtered.filter((t) => t.status === col.key);
           return (
             <div
               key={col.key}
               id={`column-${col.key}`}
-              style={{
-                borderRadius: "16px",
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-subtle)",
-                overflow: "hidden",
-              }}
+              className="kanban-col"
             >
               {/* Column header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "16px 20px",
-                  borderBottom: "1px solid var(--border-subtle)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: col.color,
-                    }}
-                  />
-                  <span style={{ fontWeight: 600, fontSize: "14px" }}>
-                    {col.label}
-                  </span>
+              <div className="kanban-col-header">
+                <div className="kanban-col-title">
+                  <span className={`col-dot ${col.colorClass}`} />
+                  <span>{col.label}</span>
                 </div>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    padding: "2px 8px",
-                    borderRadius: "100px",
-                    background: "var(--bg-overlay)",
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  {colTasks.length}
-                </span>
+                <span className="kanban-col-count">{colTasks.length}</span>
               </div>
 
-              {/* Tasks */}
-              <div
-                style={{
-                  padding: "12px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                  minHeight: "100px",
-                }}
-              >
+              {/* Task list */}
+              <div className="kanban-col-body">
                 {colTasks.length === 0 ? (
-                  <div
-                    style={{
-                      textAlign: "center",
-                      padding: "24px",
-                      color: "var(--text-muted)",
-                      fontSize: "13px",
-                    }}
-                  >
-                    No tasks here
+                  <div className="kanban-empty">
+                    <span>No tasks here</span>
                   </div>
                 ) : (
                   colTasks.map((task) => (

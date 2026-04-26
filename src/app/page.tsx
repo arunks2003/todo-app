@@ -21,172 +21,50 @@ const features = [
 
 export default function LandingPage() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
+    <main className="landing-page">
       {/* Background glow */}
-      <div
-        style={{
-          position: "absolute",
-          top: "-20%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "800px",
-          height: "400px",
-          background:
-            "radial-gradient(ellipse, rgba(92,124,250,0.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+      <div className="landing-glow" aria-hidden="true" />
 
-      <div
-        className="animate-fade-in"
-        style={{ maxWidth: "700px", width: "100%", textAlign: "center", zIndex: 1 }}
-      >
+      <div className="landing-content animate-fade-in">
         {/* Badge */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "6px 14px",
-            borderRadius: "100px",
-            background: "rgba(92,124,250,0.12)",
-            border: "1px solid rgba(92,124,250,0.3)",
-            fontSize: "12px",
-            fontWeight: 600,
-            color: "var(--brand-400)",
-            marginBottom: "2rem",
-            letterSpacing: "0.05em",
-          }}
-        >
-          <Zap size={12} fill="currentColor" />
+        <div className="landing-badge">
+          <Zap size={11} fill="currentColor" />
           PRODUCTION READY SaaS
         </div>
 
-        <h1
-          style={{
-            fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-            fontWeight: 800,
-            lineHeight: 1.1,
-            marginBottom: "1.5rem",
-            letterSpacing: "-0.03em",
-          }}
-        >
+        <h1 className="landing-title">
           Manage tasks with{" "}
           <span className="gradient-text">precision and speed</span>
         </h1>
 
-        <p
-          style={{
-            fontSize: "1.15rem",
-            color: "var(--text-secondary)",
-            lineHeight: 1.7,
-            marginBottom: "2.5rem",
-            maxWidth: "500px",
-            margin: "0 auto 2.5rem",
-          }}
-        >
+        <p className="landing-desc">
           TaskFlow is a full-stack SaaS built with Next.js, Supabase Auth, and
           Row-Level Security — fully deployed on Vercel.
         </p>
 
         {/* CTAs */}
-        <div
-          style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}
-        >
-          <Link
-            href="/signup"
-            id="cta-signup"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "14px 28px",
-              borderRadius: "12px",
-              background: "linear-gradient(135deg, var(--brand-500), var(--brand-700))",
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: "15px",
-              textDecoration: "none",
-              transition: "all 0.2s ease",
-              boxShadow: "0 4px 24px rgba(92, 124, 250, 0.35)",
-            }}
-          >
+        <div className="landing-ctas">
+          <Link href="/signup" id="cta-signup" className="btn-primary btn-lg">
             Get started free <ArrowRight size={16} />
           </Link>
-          <Link
-            href="/login"
-            id="cta-login"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "14px 28px",
-              borderRadius: "12px",
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
-              fontWeight: 600,
-              fontSize: "15px",
-              textDecoration: "none",
-              transition: "all 0.2s ease",
-            }}
-          >
+          <Link href="/login" id="cta-login" className="btn-secondary btn-lg">
             Sign in
           </Link>
         </div>
 
         {/* Feature cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-            gap: "16px",
-            marginTop: "5rem",
-          }}
-        >
+        <div className="feature-grid">
           {features.map((f, i) => (
             <div
               key={i}
-              className="glass animate-fade-in"
-              style={{
-                padding: "24px",
-                borderRadius: "16px",
-                textAlign: "left",
-                animationDelay: `${i * 0.1}s`,
-              }}
+              className="feature-card glass animate-fade-in"
+              style={{ animationDelay: `${i * 0.1}s` }}
             >
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "10px",
-                  background: "rgba(92,124,250,0.15)",
-                  color: "var(--brand-400)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "12px",
-                }}
-              >
+              <div className="feature-icon">
                 {f.icon}
               </div>
-              <h3 style={{ fontWeight: 600, marginBottom: "6px", fontSize: "14px" }}>
-                {f.title}
-              </h3>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                {f.desc}
-              </p>
+              <h3 className="feature-title">{f.title}</h3>
+              <p className="feature-desc">{f.desc}</p>
             </div>
           ))}
         </div>

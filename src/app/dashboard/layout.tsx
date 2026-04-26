@@ -26,15 +26,7 @@ export default async function DashboardLayout({
       }}
     >
       <DashboardNav user={user} />
-      <main
-        style={{
-          flex: 1,
-          maxWidth: "1200px",
-          width: "100%",
-          margin: "0 auto",
-          padding: "2rem 1.5rem",
-        }}
-      >
+      <main className="dashboard-main">
         {children}
       </main>
     </div>
